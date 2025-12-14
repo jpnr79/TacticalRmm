@@ -1,3 +1,24 @@
+    public static function getTable()
+    {
+        return 'glpi_plugin_tacticalrmm_configs';
+    }
+
+    public function getFromDB($id)
+    {
+        global $DB;
+        $table = self::getTable();
+        $res = $DB->request(["FROM" => $table, "WHERE" => ["id" => $id]]);
+        if ($row = $res->next()) {
+            $this->fields = $row;
+            return true;
+        }
+        return false;
+    }
+
+    public function getEmpty()
+    {
+        $this->fields = ["id" => 1, "url" => '', "field" => 'serial'];
+    }
 <?php
 declare(strict_types=1);
 /****************************************************************************************
@@ -6,50 +27,81 @@ declare(strict_types=1);
  **
  ****************************************************************************************/
 
+
+require_once(GLPI_ROOT . '/inc/commondbtm.class.php');
 /**
  * Config handler for TacticalRMM plugin
  */
 
-class PluginTacticalrmmConfig
+
+
+class PluginTacticalrmmConfig extends CommonDBTM
 {
-    /**
-     * Get TacticalRMM URL
-     * @return string|null
-     */
+    private static $_instance = null;
+
+    public static function getTable()
+    {
+        return 'glpi_plugin_tacticalrmm_configs';
+    }
+
+    public function getFromDB($id)
+    {
+        global $DB;
+        $table = self::getTable();
+        $res = $DB->request(["FROM" => $table, "WHERE" => ["id" => $id]]);
+        if ($row = $res->next()) {
+            $this->fields = $row;
+            return true;
+        }
+        return false;
+    }
+
+    public function getEmpty()
+    {
+        $this->fields = ["id" => 1, "url" => '', "field" => 'serial'];
+    }
+
+    public function __construct()
+    {
+        global $DB;
+        if ($DB->tableExists(self::getTable())) {
+            $this->getFromDB(1);
+        }
+    }
+
+    public static function getInstance()
+    {
+        if (!isset(self::$_instance)) {
+            self::$_instance = new self();
+            if (!self::$_instance->getFromDB(1)) {
+                self::$_instance->getEmpty();
+            }
+        }
+        return self::$_instance;
+    }
+
     public static function getUrl(): ?string
     {
-        $values = Plugin::getConfigurationValues('tacticalrmm');
-        return $values["url"] ?? null;
+        $config = self::getInstance();
+        return $config->fields["url"] ?? null;
     }
 
-    /**
-     * Set TacticalRMM URL
-     * @param string $value
-     * @return void
-     */
     public static function setUrl(string $value): void
     {
-        Plugin::setConfigurationValues('tacticalrmm', ["url" => $value]);
+        $config = self::getInstance();
+        $config->update(['id' => 1, 'url' => $value]);
     }
 
-    /**
-     * Get field used for TacticalRMM
-     * @return string|null
-     */
     public static function getField(): ?string
     {
-        $values = Plugin::getConfigurationValues('tacticalrmm');
-        return $values["field"] ?? null;
+        $config = self::getInstance();
+        return $config->fields["field"] ?? null;
     }
 
-    /**
-     * Set field for TacticalRMM
-     * @param string $value
-     * @return void
-     */
     public static function setField(string $value): void
     {
-        Plugin::setConfigurationValues('tacticalrmm', ["field" => $value]);
+        $config = self::getInstance();
+        $config->update(['id' => 1, 'field' => $value]);
     }
 }
 
