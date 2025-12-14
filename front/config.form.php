@@ -25,22 +25,22 @@ function getOption($selectedField, $name, $label) {
     return "<option value='$name' " . isSelected($selectedField, $name) .">$label</option>";
 }
 
-if (Config::canView()) {
+
+if (PluginTacticalrmmConfig::canView()) {
     $url = PluginTacticalrmmConfig::getUrl();
     $field = PluginTacticalrmmConfig::getField();
 
     Html::header("TacticalRMM", $_SERVER['PHP_SELF'], "config", "plugintacticalrmm", "");
-    echo Html::displayTitle('', '', __('TacticalRMM Settings', 'plugintacticalrmm'));
+    echo '<h2>' . __('TacticalRMM Settings', 'plugintacticalrmm') . '</h2>';
 
     echo '<div>';
-    echo isset($success) && $success ? '<p><h3>Atualização realizada com sucesso</hr></p>' : '';
-    echo '<form method=\'post\' action=\'config.form.php\'>';
-
+    echo isset($success) && $success ? '<p><h3>Atualização realizada com sucesso</h3></p>' : '';
+    echo '<form method="post" action="config.form.php">';
 
     echo "<table style='width:100%;'>";
     echo "<tr class='tab_bg_2'>";
     echo "<td> " . __('URL') . "</td>";
-    echo "<td><input type='text' name='url' id='url' value='" . $url . "' style='width: 100%'></td>";
+    echo "<td><input type='text' name='url' id='url' value='" . htmlspecialchars($url) . "' style='width: 100%'></td>";
     echo "</tr>";
 
     echo "<tr class='tab_bg_2'><td>&nbsp;</td></tr>";
@@ -58,10 +58,9 @@ if (Config::canView()) {
     echo "</td></tr>";
     echo "<tr class='tab_bg_2'><td>&nbsp;</td></tr>";
 
-
     echo "<tr><td colspan='2'>";
-    if (Config::canUpdate()) {
-        echo Html::hidden('id', ['value' => $object->fields['id']]);
+    if (PluginTacticalrmmConfig::canUpdate()) {
+        echo Html::hidden('id', ['value' => 1]);
         echo Html::hidden('update', ['value' => 'now']);
         echo Html::submit(__('Save', 'livecall'));
     }
@@ -71,5 +70,5 @@ if (Config::canView()) {
     echo '</div>';
     Html::footer();
 } else {
-    Html::displayRightError();
+    echo '<div class="center"><p>' . __('You do not have permission to view this page.') . '</p></div>';
 }

@@ -1,3 +1,12 @@
+        public static function canView()
+        {
+            return Session::haveRight('config', READ);
+        }
+
+        public static function canUpdate()
+        {
+            return Session::haveRight('config', UPDATE);
+        }
     public static function getTable()
     {
         return 'glpi_plugin_tacticalrmm_configs';

@@ -40,9 +40,12 @@ function plugin_version_tacticalrmm(): array
  * Check TacticalRMM plugin prerequisites
  * @return bool
  */
+
 function plugin_tacticalrmm_check_prerequisites(): bool
 {
-    if (version_compare(GLPI_VERSION, '9.1.2', 'lt')) {
+    global $CFG_GLPI;
+    $glpi_version = $CFG_GLPI['version'] ?? '0.0.0';
+    if (version_compare($glpi_version, '9.1.2', 'lt')) {
         if (method_exists('Plugin', 'messageIncompatible')) {
             echo Plugin::messageIncompatible('core', '9.1.2');
         } else {
