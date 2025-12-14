@@ -30,12 +30,25 @@ function plugin_tacticalrmm_install(): bool
         $migration->addField($table, 'field', 'string', ['default' => 'serial']);
         $migration->addKey($table, 'PRIMARY KEY', ['id']);
         $migration->executeMigration();
-        $DB->insert($table, ['id' => 1, 'url' => '', 'field' => 'serial']);
+        // Insert default row using Migration
+        $migration->insertData($table, [
+            [
+                'id' => 1,
+                'url' => '',
+                'field' => 'serial'
+            ]
+        ]);
     } else {
         // Ensure row exists
         $res = $DB->request(["FROM" => $table, "WHERE" => ["id" => 1]]);
         if ($res->numrows() == 0) {
-            $DB->insert($table, ['id' => 1, 'url' => '', 'field' => 'serial']);
+            $migration->insertData($table, [
+                [
+                    'id' => 1,
+                    'url' => '',
+                    'field' => 'serial'
+                ]
+            ]);
         }
     }
     return true;
@@ -53,7 +66,10 @@ function plugin_tacticalrmm_uninstall(): bool
     global $DB;
     $table = "glpi_plugin_tacticalrmm_configs";
     if ($DB->tableExists($table)) {
-        $DB->query("DROP TABLE $table");
+        include_once(GLPI_ROOT . '/inc/migration.class.php');
+        $migration = new Migration('1.0.0');
+        $migration->dropTable($table);
+        $migration->executeMigration();
     }
     return true;
 }
