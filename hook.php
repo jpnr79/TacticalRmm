@@ -23,8 +23,15 @@ function plugin_tacticalrmm_install(): bool
 if (!defined('GLPI_ROOT')) { define('GLPI_ROOT', realpath(__DIR__ . '/../..')); }
 
     $table = "glpi_plugin_tacticalrmm_configs";
-    // Create table only if it does not exist
-    if (! $DB->tableExists($table)) {
+    // Create table only if it does not exist (GLPI 11+ compatible)
+    $res = $DB->request([
+        'FROM' => 'information_schema.tables',
+        'WHERE' => [
+            'table_schema' => $DB->request("SELECT DATABASE() AS dbname")[0]['dbname'],
+            'table_name'   => $table
+        ]
+    ]);
+    if (!($res && count($res))) {
         $query = "CREATE TABLE `$table` (
             `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
             `url` varchar(255) NOT NULL DEFAULT '',
