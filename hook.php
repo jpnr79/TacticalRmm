@@ -17,56 +17,21 @@ declare(strict_types=1);
 
 
 
-function plugin_tacticalrmm_install(): bool
+
+class PluginTacticalrmmInstall
 {
-    global $DB;
-if (!defined('GLPI_ROOT')) { define('GLPI_ROOT', realpath(__DIR__ . '/../..')); }
-
-    $table = "glpi_plugin_tacticalrmm_configs";
-    // Create table only if it does not exist (GLPI 11+ compatible)
-    $res = $DB->request([
-        'FROM' => 'information_schema.tables',
-        'WHERE' => [
-            'table_schema' => $DB->request("SELECT DATABASE() AS dbname")[0]['dbname'],
-            'table_name'   => $table
-        ]
-    ]);
-    if (!($res && count($res))) {
-        $query = "CREATE TABLE `$table` (
-            `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
-            `url` varchar(255) NOT NULL DEFAULT '',
-            `field` varchar(255) NOT NULL DEFAULT 'serial',
-            PRIMARY KEY (`id`)
-        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;";
-        $DB->request($query);
+    public static function install(Migration $migration): bool
+    {
+        // All schema and default data migration is handled by the migration SQL file.
+        return true;
     }
 
-    // Ensure id is unsigned if table already exists (check column type first)
-    $need_alter = false;
-    $dbname = '';
-    $res = $DB->request("SELECT DATABASE() AS dbname");
-    if ($res && count($res) && isset($res[0]['dbname'])) {
-        $dbname = $res[0]['dbname'];
+    public static function uninstall(Migration $migration): bool
+    {
+        $table = "glpi_plugin_tacticalrmm_configs";
+        $migration->dropTable($table);
+        return true;
     }
-    $col = $DB->request(["FROM" => "information_schema.COLUMNS", "WHERE" => [
-        "TABLE_SCHEMA" => $dbname,
-        "TABLE_NAME" => $table,
-        "COLUMN_NAME" => 'id'
-    ]]);
-    if ($col && count($col) && isset($col[0]['COLUMN_TYPE'])) {
-        if (stripos($col[0]['COLUMN_TYPE'], 'unsigned') === false) {
-            $need_alter = true;
-        }
-    }
-    if ($need_alter) {
-        $alter = "ALTER TABLE `$table` MODIFY COLUMN `id` int(11) unsigned NOT NULL AUTO_INCREMENT;";
-        $DB->request($alter);
-    }
-
-    // Insert default row if missing
-    $insert = "INSERT IGNORE INTO `$table` (`id`, `url`, `field`) VALUES (1, '', 'serial');";
-    $DB->request($insert);
-    return true;
 }
 
 /**
@@ -76,12 +41,12 @@ if (!defined('GLPI_ROOT')) { define('GLPI_ROOT', realpath(__DIR__ . '/../..')); 
 
 
 
+
+// Legacy uninstall kept for compatibility, but should not be used in GLPI 11+
 function plugin_tacticalrmm_uninstall(): bool
 {
-    global $DB;
-    $table = "glpi_plugin_tacticalrmm_configs";
-    $DB->request("DROP TABLE IF EXISTS `$table`;");
-    return true;
+    $migration = new Migration('tacticalrmm');
+    return PluginTacticalrmmInstall::uninstall($migration);
 }
 
 /**
